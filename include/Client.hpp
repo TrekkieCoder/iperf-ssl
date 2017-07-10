@@ -78,7 +78,7 @@ public:
     void InitiateServer();
 
     // UDP / TCP
-    void Send( void );
+    //void Send( void );
         
     void write_UDP_FIN( );
 
@@ -86,11 +86,13 @@ public:
     void Connect( );
 
 protected:
+    int sendTCP( void );
+
     thread_Settings *mSettings;
     char* mBuf;
     Timestamp mEndTime;
     Timestamp lastPacketTime;
-
+    SSL *conn;
 }; // end class Client
 
 #endif // CLIENT_H

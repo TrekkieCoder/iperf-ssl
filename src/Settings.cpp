@@ -123,6 +123,7 @@ const struct option long_options[] =
 {"ipv6_domain",      no_argument, NULL, 'V'},
 {"suggest_win_size", no_argument, NULL, 'W'},
 {"linux-congestion", required_argument, NULL, 'Z'},
+{"tls", no_argument, NULL, 'E'},
 {0, 0, 0, 0}
 };
 
@@ -186,6 +187,34 @@ const int  kDefault_UDPBufLen = 1470;      // -u  if set, read/write 1470 bytes
 // 1450 bytes is small enough to be sending one packet per datagram on ethernet
 //  **** with IPv6 ****
 
+
+/*---------------------------------------------------------------------*/
+/*--- LoadCertificates - load from files.                           ---*/
+/*---------------------------------------------------------------------*/
+void LoadCertificates(SSL_CTX* ctx, const char* CertFile, const char* KeyFile)
+{
+	/* set the local certificate from CertFile */
+    if ( SSL_CTX_use_certificate_file(ctx, CertFile, SSL_FILETYPE_PEM) <= 0 )
+    {
+        ERR_print_errors_fp(stderr);
+        abort();
+    }
+
+    /* set the private key from KeyFile (may be the same as CertFile) */
+    if ( SSL_CTX_use_PrivateKey_file(ctx, KeyFile, SSL_FILETYPE_PEM) <= 0 )
+    {
+        ERR_print_errors_fp(stderr);
+        abort();
+    }
+
+    /* verify private key */
+    if ( !SSL_CTX_check_private_key(ctx) )
+    {
+        fprintf(stderr, "Private key does not match the public certificate\n");
+        abort();
+    }
+}
+
 /* -------------------------------------------------------------------
  * Initialize all settings to defaults.
  * ------------------------------------------------------------------- */
@@ -237,6 +266,11 @@ void Settings_Initialize( thread_Settings *main ) {
     //main->mDomain     = kMode_IPv4;    // -V,
     //main->mSuggestWin = false;         // -W,  Suggest the window size.
 
+    main->ssl_ctx = SSL_CTX_new(TLSv1_2_method());
+    SSL_CTX_set_cipher_list(main->ssl_ctx, "ECDHE-RSA-AES128-GCM-SHA256");
+    EVP_add_cipher(EVP_aes_128_gcm());
+
+    LoadCertificates(main->ssl_ctx, "newreq.pem", "key.pem");
 } // end Settings
 
 void Settings_Copy( thread_Settings *from, thread_Settings **into ) {
@@ -594,6 +628,10 @@ void Settings_Interpret( char option, const char *optarg, thread_Settings *mExtS
             setDaemon( mExtSettings );
             break;
 
+        case 'E': // Run as a daemon
+            setSSL( mExtSettings );
+            break;
+
         case 'F' : // Get the input for the data stream from a file
             if ( mExtSettings->mThreadMode != kMode_Client ) {
                 fprintf( stderr, warn_invalid_server_option, option );
@@ -779,6 +817,10 @@ void Settings_GenerateClientSettings( thread_Settings *server,
                                       thread_Settings **client,
                                       client_hdr *hdr ) {
     int flags = ntohl(hdr->flags);
+
+    if (hdr->flags & htonl(FLAG_SSL))
+        setSSL(server);
+
     if ( (flags & HEADER_VERSION1) != 0 ) {
         *client = new thread_Settings;
         memcpy(*client, server, sizeof( thread_Settings ));
@@ -824,6 +866,7 @@ void Settings_GenerateClientSettings( thread_Settings *server,
             inet_ntop( AF_INET, &((sockaddr_in*)&server->peer)->sin_addr, 
                        (*client)->mHost, REPORT_ADDRLEN);
         }
+
 #ifdef HAVE_IPV6
           else {
             inet_ntop( AF_INET6, &((sockaddr_in6*)&server->peer)->sin6_addr, 
@@ -870,4 +913,7 @@ void Settings_GenerateClientHdr( thread_Settings *client, client_hdr *hdr ) {
 	hdr->flags |= htonl(UNITS_PPS);
     if ( client->mMode == kTest_DualTest )
 	hdr->flags |= htonl(RUN_NOW);
+
+    if (isSSL(client))
+	    hdr->flags |= htonl(FLAG_SSL);
 }

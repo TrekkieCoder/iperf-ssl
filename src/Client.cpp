@@ -68,6 +68,8 @@
 #include <sys/mman.h>
 #endif
 
+#include <openssl/ssl.h>
+
 /* -------------------------------------------------------------------
  * Store server hostname, optionally local hostname, and socket info.
  * ------------------------------------------------------------------- */
@@ -281,6 +283,15 @@ void Client::RunRateLimitedTCP ( void ) {
     EndReport( mSettings->reporthdr );
 }
 
+int Client::sendTCP( void ) {
+	int currLen = 0;
+	if (!isSSL(mSettings))
+		currLen = write( mSettings->mSock, mBuf, mSettings->mBufLen );
+	else
+		currLen = SSL_write(conn, mBuf, mSettings->mBufLen);
+	return currLen;
+}
+
 void Client::RunTCP( void ) {
     int currLen = 0;
     max_size_t totLen = 0;
@@ -344,7 +355,7 @@ void Client::RunTCP( void ) {
 
         // perform write 
 	reportstruct->errwrite=0;
-        currLen = write( mSettings->mSock, mBuf, mSettings->mBufLen );
+	currLen = sendTCP();
         if ( currLen < 0 ) {
 	    reportstruct->errwrite=1; 
 	    currLen = 0;
@@ -422,6 +433,13 @@ void Client::Run( void ) {
     double adjust = 0;
 
     char* readAt = mBuf;
+
+    if (isSSL(mSettings)) {
+	    conn = SSL_new(mSettings->ssl_ctx);
+	    SSL_set_fd(conn, mSettings->mSock);
+	    SSL_set_connect_state(conn);
+	    SSL_do_handshake(conn);
+    }
 
     //  Enable socket write timeouts for responsive reporting
     //  Do this after the connection establishment
@@ -723,6 +741,7 @@ void Client::Connect( ) {
                  &mSettings->size_local );
     getpeername( mSettings->mSock, (sockaddr*) &mSettings->peer,
                  &mSettings->size_peer );
+
 } // end Connect
 
 /* ------------------------------------------------------------------- 

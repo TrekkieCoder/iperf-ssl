@@ -1,5 +1,5 @@
 /*--------------------------------------------------------------- 
- * Copyright (c) 1999,2000,2001,2002,2003                              
+l * Copyright (c) 1999,2000,2001,2002,2003
  * The Board of Trustees of the University of Illinois            
  * All Rights Reserved.                                           
  *--------------------------------------------------------------- 
@@ -67,6 +67,9 @@
 #include <sys/mman.h>
 #endif
 
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+
 /* -------------------------------------------------------------------
  * Stores connected socket and socket info.
  * ------------------------------------------------------------------- */
@@ -108,7 +111,16 @@ void Server::Run( void ) {
     ReportStruct *reportstruct = NULL;
     int running;
     static struct timeval watchdog;
+    SSL *conn = NULL;
 
+    if (isSSL(mSettings)) {
+	    conn = SSL_new(mSettings->ssl_ctx);
+	    SSL_set_fd(conn, mSettings->mSock);
+	    if ( SSL_accept(conn) == -1 )					/* do SSL-protocol accept */
+		ERR_print_errors_fp(stderr);
+    }
+
+#undef HAVE_DECL_SO_TIMESTAMP
 #if HAVE_DECL_SO_TIMESTAMP
     // Structures needed for recvmsg
     // Use to get kernel timestamps of packets
@@ -213,8 +225,11 @@ void Server::Run( void ) {
 		}
             }
 #else
-            // perform read 
-            currLen = recv( mSettings->mSock, mBuf, mSettings->mBufLen, 0 );
+            // perform read
+            if (!isSSL(mSettings))
+        		currLen = recv( mSettings->mSock, mBuf, mSettings->mBufLen, 0 );
+            else
+        	    	currLen = SSL_read(conn, mBuf, mSettings->mBufLen);
 	    if (currLen <= 0) {
 		reportstruct->emptyreport=1;
                 // End loop on 0 read or socket error
