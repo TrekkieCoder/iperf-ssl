@@ -124,6 +124,7 @@ const struct option long_options[] =
 {"suggest_win_size", no_argument, NULL, 'W'},
 {"linux-congestion", required_argument, NULL, 'Z'},
 {"tls", no_argument, NULL, 'E'},
+{"ktls", no_argument, NULL, 'K'},
 {0, 0, 0, 0}
 };
 
@@ -628,7 +629,10 @@ void Settings_Interpret( char option, const char *optarg, thread_Settings *mExtS
             setDaemon( mExtSettings );
             break;
 
-        case 'E': // Run as a daemon
+        case 'K': // Use KTLS
+            setKTLS( mExtSettings );
+            // fall through
+        case 'E': // Use SSL
             setSSL( mExtSettings );
             break;
 

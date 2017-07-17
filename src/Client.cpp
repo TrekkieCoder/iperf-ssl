@@ -285,7 +285,7 @@ void Client::RunRateLimitedTCP ( void ) {
 
 int Client::sendTCP( void ) {
 	int currLen = 0;
-	if (!isSSL(mSettings))
+	if (!isSSL(mSettings) || isKTLS(mSettings))
 		currLen = write( mSettings->mSock, mBuf, mSettings->mBufLen );
 	else
 		currLen = SSL_write(conn, mBuf, mSettings->mBufLen);
