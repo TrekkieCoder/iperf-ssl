@@ -242,6 +242,13 @@ void Server::Run( void ) {
 #endif		     
 		    ) {
 		    running = 0;
+		} else {
+			if (!isSSL(mSettings))
+				printf("recv returned %ld\n", currLen);
+			else {
+				printf("SSL_read returned %ld\n", currLen);
+				ERR_print_errors_fp(stderr);
+			}
 		}
 		currLen = 0;
 	    }
