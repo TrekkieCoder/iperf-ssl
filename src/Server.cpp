@@ -309,6 +309,9 @@ void Server::Run( void ) {
 
     DELETE_PTR( reportstruct );
     EndReport( mSettings->reporthdr );
+
+    if (isSSL(mSettings))
+        SSL_free(conn);
 } 
 // end Recv 
 
