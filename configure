@@ -7373,7 +7373,7 @@ _ACEOF
 
 
 if test "$ac_cv_sizeof_bool" = 0 ; then
-  $as_echo "#define bool int" >>confdefs.h
+  $as_echo "#include <stdbool.h>" >>confdefs.h
 
 fi
 
