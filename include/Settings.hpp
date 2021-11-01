@@ -229,8 +229,9 @@ typedef struct thread_Settings {
 #define FLAG_REALTIME       0x00800000
 #define FLAG_BWSET          0x01000000
 #define FLAG_ENHANCEDREPORT 0x02000000
-#define FLAG_SSL	    0x04000000
-#define FLAG_KTLS	    0x08000000
+#define FLAG_SSL12	    0x04000000
+#define FLAG_SSL13	    0x08000000
+#define FLAG_KTLS	    0x10000000
 
 #define isBuflenSet(settings)      ((settings->flags & FLAG_BUFLENSET) != 0)
 #define isCompat(settings)         ((settings->flags & FLAG_COMPAT) != 0)
@@ -260,7 +261,9 @@ typedef struct thread_Settings {
 #define isRealtime(settings)       ((settings->flags & FLAG_REALTIME) != 0)
 #define isBWSet(settings)          ((settings->flags & FLAG_BWSET) != 0)
 #define isEnhanced(settings)    ((settings->flags & FLAG_ENHANCEDREPORT) != 0)
-#define isSSL(settings)    	((settings->flags & FLAG_SSL) != 0)
+#define isSSL(settings)    	((settings->flags & (FLAG_SSL12 | FLAG_SSL13)) != 0)
+#define isSSL12(settings)    	((settings->flags & FLAG_SSL12) != 0)
+#define isSSL13(settings)    	((settings->flags & FLAG_SSL13) != 0)
 #define isKTLS(settings)    	((settings->flags & FLAG_KTLS) != 0)
 
 #define setBuflenSet(settings)     settings->flags |= FLAG_BUFLENSET
@@ -289,8 +292,9 @@ typedef struct thread_Settings {
 #define setRealtime(settings)      settings->flags |= FLAG_REALTIME
 #define setBWSet(settings)         settings->flags |= FLAG_BWSET
 #define setEnhanced(settings)      settings->flags |= FLAG_ENHANCEDREPORT
-#define setSSL(settings)           settings->flags |= FLAG_SSL
-#define setKTLS(settings)           settings->flags |= FLAG_KTLS
+#define setSSL12(settings)         settings->flags |= FLAG_SSL12
+#define setSSL13(settings)         settings->flags |= FLAG_SSL13
+#define setKTLS(settings)          settings->flags |= FLAG_KTLS
 
 #define unsetBuflenSet(settings)   settings->flags &= ~FLAG_BUFLENSET
 #define unsetCompat(settings)      settings->flags &= ~FLAG_COMPAT

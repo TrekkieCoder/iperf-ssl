@@ -123,8 +123,8 @@ const struct option long_options[] =
 {"ipv6_domain",      no_argument, NULL, 'V'},
 {"suggest_win_size", no_argument, NULL, 'W'},
 {"linux-congestion", required_argument, NULL, 'Z'},
-{"tls", no_argument, NULL, 'E'},
-{"ktls", no_argument, NULL, 'K'},
+{"tls",        optional_argument, NULL, 'E'},
+{"ktls",             no_argument, NULL, 'K'},
 {0, 0, 0, 0}
 };
 
@@ -266,12 +266,6 @@ void Settings_Initialize( thread_Settings *main ) {
     main->mTTL          = 1;             // -T,  link-local TTL
     //main->mDomain     = kMode_IPv4;    // -V,
     //main->mSuggestWin = false;         // -W,  Suggest the window size.
-
-    main->ssl_ctx = SSL_CTX_new(TLSv1_2_method());
-    SSL_CTX_set_cipher_list(main->ssl_ctx, "ECDHE-RSA-AES128-GCM-SHA256");
-    EVP_add_cipher(EVP_aes_128_gcm());
-
-    LoadCertificates(main->ssl_ctx, "newreq.pem", "key.pem");
 } // end Settings
 
 void Settings_Copy( thread_Settings *from, thread_Settings **into ) {
@@ -343,6 +337,25 @@ void Settings_ParseCommandLine( int argc, char **argv, thread_Settings *mSetting
         fprintf( stderr, "%s: ignoring extra argument -- %s\n", argv[0], argv[i] );
     }
 } // end ParseCommandLine
+
+static void Setup_TLS(thread_Settings *mExtSettings, int version)
+{
+    SSL_library_init();
+    OpenSSL_add_all_algorithms();
+    SSL_load_error_strings();
+
+    if (version == 13) {
+        mExtSettings->ssl_ctx = SSL_CTX_new(TLS_method());
+        SSL_CTX_set_cipher_list(mExtSettings->ssl_ctx, "TLS1_3_RFC_AES_128_GCM_SHA256");
+    } else {
+        mExtSettings->ssl_ctx = SSL_CTX_new(TLSv1_2_method());
+        SSL_CTX_set_cipher_list(mExtSettings->ssl_ctx, "ECDHE-RSA-AES128-GCM-SHA256");
+    }
+
+    SSL_CTX_set_ecdh_auto(mExtSettings->ssl_ctx, 1);
+    EVP_add_cipher(EVP_aes_128_gcm());
+    LoadCertificates(mExtSettings->ssl_ctx, "newreq.pem", "key.pem");
+}
 
 /* -------------------------------------------------------------------
  * Interpret individual options, either from the command line
@@ -633,7 +646,17 @@ void Settings_Interpret( char option, const char *optarg, thread_Settings *mExtS
             setKTLS( mExtSettings );
             // fall through
         case 'E': // Use SSL
-            setSSL( mExtSettings );
+            if (isSSL( mExtSettings )) {
+                fprintf( stderr, "The -E option should only be specified once (ignored)\n");
+            } else if (optarg == NULL || strcmp(optarg, "v1.2") == 0) {
+                setSSL12( mExtSettings );
+                Setup_TLS( mExtSettings , 12);
+            } else if (strcmp(optarg, "v1.3") == 0) {
+                setSSL13( mExtSettings );
+                Setup_TLS( mExtSettings , 13);
+            } else {
+                fprintf( stderr, "Invalid -E option argument (TLS not enabled)\n");
+            }
             break;
 
         case 'F' : // Get the input for the data stream from a file
@@ -822,8 +845,10 @@ void Settings_GenerateClientSettings( thread_Settings *server,
                                       client_hdr *hdr ) {
     int flags = ntohl(hdr->flags);
 
-    if (hdr->flags & htonl(FLAG_SSL))
-        setSSL(server);
+    if (hdr->flags & htonl(FLAG_SSL12))
+        setSSL12(server);
+    else if (hdr->flags & htonl(FLAG_SSL13))
+        setSSL13(server);
 
     if ( (flags & HEADER_VERSION1) != 0 ) {
         *client = new thread_Settings;
@@ -918,6 +943,8 @@ void Settings_GenerateClientHdr( thread_Settings *client, client_hdr *hdr ) {
     if ( client->mMode == kTest_DualTest )
 	hdr->flags |= htonl(RUN_NOW);
 
-    if (isSSL(client))
-	    hdr->flags |= htonl(FLAG_SSL);
+    if (isSSL12(client))
+        hdr->flags |= htonl(FLAG_SSL12);
+    else if (isSSL13(client))
+        hdr->flags |= htonl(FLAG_SSL13);
 }

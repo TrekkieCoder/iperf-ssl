@@ -117,7 +117,7 @@ Client specific:\n\
   -P, --parallel  #        number of parallel client threads to run\n\
   -T, --ttl       #        time-to-live, for multicast (default 1)\n\
   -Z, --linux-congestion <algo>  set TCP congestion control algorithm (Linux only)\n\
-  -E, --tls                Use TLS\n\
+  -E, --tls       #        Use TLS 'v1.2' or 'v1.3'\n\
 \n\
 Miscellaneous:\n\
   -x, --reportexclude [CDMSV]   exclude C(connection) D(data) M(multicast) S(settings) V(server) reports\n\
