@@ -1,15 +1,26 @@
-This is Iperf v2.0.0, a tool for measuring Internet bandwidth performance.
+This is Iperf v2.0.0, a tool for measuring Internet bandwidth performance. This iperf fork is customized to work with TLS and also supports kTLS(offload).
+
 See the doc directory for more documentation.
 Briefly:
 
-  ./configure      -- configure for your machine
-  make             -- compile Iperf
-  make install     -- install Iperf, if desired
+  ./build.sh <openssl-install-dir>   -- Build Iperf
+  make install                       -- install Iperf, if desired
 
   iperf -s               (on machine "foo.bar.edu")
   iperf -c foo.bar.edu   (on some other machine)
   iperf -h               (for help screen)
   iperf -v               (for version information)
+  iperf -tls=v1.2        (for running in TLS mode)
+
+Example for testing ssl/tls :
+
+In server mode:
+
+# src/iperf  iperf --tls=v1.2 --ktls -s
+
+In client mode :
+
+# src/iperf --tls=v1.2 --ktls -c <ip> -t 60 -i 1
 
 Copyright 1999, 2000, 2001, 2002, 2003, 2004
 The Board of Trustees of the University of Illinois

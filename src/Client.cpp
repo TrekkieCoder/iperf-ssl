@@ -436,9 +436,8 @@ void Client::Run( void ) {
 
     if (isSSL(mSettings)) {
 	    conn = SSL_new(mSettings->ssl_ctx);
-#ifdef __FreeBSD__
-	    SSL_set_options(conn, SSL_OP_ENABLE_KTLS);
-#endif
+      if (isKTLS(mSettings))
+        SSL_set_options(conn, SSL_OP_ENABLE_KTLS);
 	    SSL_set_fd(conn, mSettings->mSock);
 	    SSL_set_connect_state(conn);
 	    SSL_do_handshake(conn);

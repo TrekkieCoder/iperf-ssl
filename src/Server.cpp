@@ -115,9 +115,8 @@ void Server::Run( void ) {
 
     if (isSSL(mSettings)) {
 	    conn = SSL_new(mSettings->ssl_ctx);
-#ifdef __FreeBSD__
-	    SSL_set_options(conn, SSL_OP_ENABLE_KTLS);
-#endif
+        if (isKTLS(mSettings))
+	      SSL_set_options(conn, SSL_OP_ENABLE_KTLS);
 	    SSL_set_fd(conn, mSettings->mSock);
 	    if ( SSL_accept(conn) == -1 )					/* do SSL-protocol accept */
 		ERR_print_errors_fp(stderr);
