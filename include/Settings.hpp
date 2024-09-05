@@ -190,6 +190,7 @@ typedef struct thread_Settings {
 #endif
 
     SSL_CTX *ssl_ctx;
+    void *ssl;
 } thread_Settings;
 
 /*

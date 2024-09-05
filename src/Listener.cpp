@@ -80,6 +80,10 @@
 #include "List.h"
 #include "util.h" 
 
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+
+
 /* ------------------------------------------------------------------- 
  * Stores local hostname and socket info. 
  * ------------------------------------------------------------------- */ 
@@ -118,6 +122,7 @@ Listener::~Listener() {
  *          spawn a new Server thread. 
  * ------------------------------------------------------------------- */ 
 void Listener::Run( void ) {
+  SSL *conn = NULL;
 #if 0 // ifdef WIN32 removed to allow Windows to use multi-threaded UDP server 
     if ( isUDP( mSettings ) && !isSingleUDP( mSettings ) ) {
         UDPSingleServer();
@@ -233,11 +238,37 @@ sInterupted == SIGALRM
             tempSettings = NULL;
             if ( !isCompat( mSettings ) && !isMulticast( mSettings ) ) {
                 if ( !UDP ) {
+                        if (isSSL(mSettings)) {
+                                conn = SSL_new(mSettings->ssl_ctx);
+                                SSL_set_fd(conn, server->mSock);
+
+                                if ( SSL_accept(conn) == -1 )         /* do SSL-protocol accept */
+                                        ERR_print_errors_fp(stderr);
+                                }
+                                mSettings->ssl = conn;
+                                server->ssl = conn;
+
+                                // perform read0        
+                                if (!isSSL(mSettings)) {
+                                        if ( recv( server->mSock, (char*)hdr, sizeof(client_hdr), 0) > 0 ) {
+                                                Settings_GenerateClientSettings( server, &tempSettings, 
+                                                          hdr );
+                                        }
+                                } else {
+                                        if (SSL_read(conn, (char*)hdr, sizeof(client_hdr)) > 0) {
+                                                Settings_GenerateClientSettings( server, &tempSettings, 
+                                                          hdr );
+                                        }
+                                }
+
+                  
+#if 0 
                     // TCP does not have the info yet
                     if ( recv( server->mSock, (char*)hdr, sizeof(client_hdr), 0) > 0 ) {
                         Settings_GenerateClientSettings( server, &tempSettings, 
                                                           hdr );
                     }
+#endif
                 } else {
                     Settings_GenerateClientSettings( server, &tempSettings, 
                                                       hdr );

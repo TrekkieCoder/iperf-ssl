@@ -434,6 +434,7 @@ void Client::Run( void ) {
 
     char* readAt = mBuf;
 
+#if 0
     if (isSSL(mSettings)) {
 	    conn = SSL_new(mSettings->ssl_ctx);
       if (isKTLS(mSettings))
@@ -442,6 +443,7 @@ void Client::Run( void ) {
 	    SSL_set_connect_state(conn);
 	    SSL_do_handshake(conn);
     }
+#endif
 
     //  Enable socket write timeouts for responsive reporting
     //  Do this after the connection establishment
@@ -693,8 +695,20 @@ void Client::InitiateServer() {
             temp_hdr = (client_hdr*)mBuf;
         }
         Settings_GenerateClientHdr( mSettings, temp_hdr );
+        if (isSSL(mSettings)) {
+	        conn = SSL_new(mSettings->ssl_ctx);
+          if (isKTLS(mSettings))
+            SSL_set_options(conn, SSL_OP_ENABLE_KTLS);
+	        SSL_set_fd(conn, mSettings->mSock);
+	        SSL_set_connect_state(conn);
+	        SSL_do_handshake(conn);
+        }
+
         if ( !isUDP( mSettings ) ) {
-            currLen = send( mSettings->mSock, mBuf, sizeof(client_hdr), 0 );
+            if (!isSSL(mSettings) || isKTLS(mSettings))
+              currLen = send( mSettings->mSock, mBuf, sizeof(client_hdr), 0 );
+            else
+              currLen = SSL_write(conn, mBuf, sizeof(client_hdr));
             if ( currLen < 0 ) {
                 WARN_errno( currLen < 0, "write1" );
             }

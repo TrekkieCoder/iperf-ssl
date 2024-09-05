@@ -111,16 +111,7 @@ void Server::Run( void ) {
     ReportStruct *reportstruct = NULL;
     int running;
     static struct timeval watchdog;
-    SSL *conn = NULL;
-
-    if (isSSL(mSettings)) {
-	    conn = SSL_new(mSettings->ssl_ctx);
-        if (isKTLS(mSettings))
-	      SSL_set_options(conn, SSL_OP_ENABLE_KTLS);
-	    SSL_set_fd(conn, mSettings->mSock);
-	    if ( SSL_accept(conn) == -1 )					/* do SSL-protocol accept */
-		ERR_print_errors_fp(stderr);
-    }
+    SSL *conn = (SSL *)mSettings->ssl;
 
 #undef HAVE_DECL_SO_TIMESTAMP
 #if HAVE_DECL_SO_TIMESTAMP
@@ -227,6 +218,7 @@ void Server::Run( void ) {
 		}
             }
 #else
+
             // perform read
             if (!isSSL(mSettings))
         		currLen = recv( mSettings->mSock, mBuf, mSettings->mBufLen, 0 );
