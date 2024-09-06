@@ -8,11 +8,15 @@ See the doc directory for more documentation.
   make install                       # -- install Iperf, if desired
 ```
 
-  iperf -s               (on machine "foo.bar.edu")
-  iperf -c foo.bar.edu   (on some other machine)
-  iperf -h               (for help screen)
-  iperf -v               (for version information)
-  iperf -tls=v1.2        (for running in TLS mode)
+### Generic usage 
+
+```
+iperf -s               (on machine "foo.bar.edu")
+iperf -c foo.bar.edu   (on some other machine)
+iperf -h               (for help screen)
+iperf -v               (for version information)
+iperf -tls=v1.2        (for running in TLS mode)
+```
 
 Examples for testing iperf with ssl/tls :
 
