@@ -697,8 +697,8 @@ void Client::InitiateServer() {
         Settings_GenerateClientHdr( mSettings, temp_hdr );
         if (isSSL(mSettings)) {
 	        conn = SSL_new(mSettings->ssl_ctx);
-          if (isKTLS(mSettings))
-            SSL_set_options(conn, SSL_OP_ENABLE_KTLS);
+          //if (isKTLS(mSettings))
+          //  SSL_set_options(conn, SSL_OP_ENABLE_KTLS);
 	        SSL_set_fd(conn, mSettings->mSock);
 	        SSL_set_connect_state(conn);
 	        SSL_do_handshake(conn);
