@@ -14,7 +14,7 @@ See the doc directory for more documentation.
   iperf -v               (for version information)
   iperf -tls=v1.2        (for running in TLS mode)
 
-Examples for testing ssl/tls :
+Examples for testing iperf with ssl/tls :
 
 ### In server mode:
 ```
@@ -28,7 +28,7 @@ Examples for testing ssl/tls :
 
 ### Notes about certificates
 
-The pre-generated cert file is ```newreq.pem``` and key is ```key.pem```. This is just for testing purposes. Kindly generate fresh certificates if need be.
+The pre-generated cert file is in ```newreq.pem``` and key is in ```key.pem``` which is used by this version of iperf. These are there just for testing purposes. Kindly generate fresh certificates if need be.
 
 ### Misc Info 
 ```
