@@ -1,4 +1,4 @@
-This is Iperf v2.0.0, a tool for measuring Internet bandwidth performance. This iperf fork is customized to work with TLS and also supports kTLS(offload).
+This is Iperf v2.0.0, a tool for measuring Internet bandwidth performance. This iperf fork is customized to work with TLS.
 
 See the doc directory for more documentation.
 Briefly:
@@ -16,7 +16,7 @@ Example for testing ssl/tls :
 
 In server mode:
 
-# src/iperf  iperf --tls=v1.2 --ktls -s
+# src/iperf  iperf --tls=v1.2 -s
 
 In client mode :
 
