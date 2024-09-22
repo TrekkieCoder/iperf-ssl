@@ -700,6 +700,9 @@ void Client::InitiateServer() {
           //if (isKTLS(mSettings))
           //  SSL_set_options(conn, SSL_OP_ENABLE_KTLS);
 	        SSL_set_fd(conn, mSettings->mSock);
+			if (isServerName(mSettings)) {
+				SSL_set_tlsext_host_name(conn, mSettings->mServerName);
+			}
 	        SSL_set_connect_state(conn);
 	        SSL_do_handshake(conn);
         }

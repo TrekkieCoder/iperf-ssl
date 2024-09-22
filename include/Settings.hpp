@@ -124,6 +124,7 @@ typedef struct thread_Settings {
     char*  mHost;                   // -c
     char*  mLocalhost;              // -B
     char*  mOutputFileName;         // -o
+    char*  mServerName;             // -A
     FILE*  Extractor_file;
     ReportHeader*  reporthdr;
     MultiHeader*   multihdr;
@@ -230,9 +231,10 @@ typedef struct thread_Settings {
 #define FLAG_REALTIME       0x00800000
 #define FLAG_BWSET          0x01000000
 #define FLAG_ENHANCEDREPORT 0x02000000
-#define FLAG_SSL12	    0x04000000
-#define FLAG_SSL13	    0x08000000
-#define FLAG_KTLS	    0x10000000
+#define FLAG_SSL12	        0x04000000
+#define FLAG_SSL13	        0x08000000
+#define FLAG_KTLS	        0x10000000
+#define FLAG_SERVERNAME	    0x20000000
 
 #define isBuflenSet(settings)      ((settings->flags & FLAG_BUFLENSET) != 0)
 #define isCompat(settings)         ((settings->flags & FLAG_COMPAT) != 0)
@@ -262,10 +264,11 @@ typedef struct thread_Settings {
 #define isRealtime(settings)       ((settings->flags & FLAG_REALTIME) != 0)
 #define isBWSet(settings)          ((settings->flags & FLAG_BWSET) != 0)
 #define isEnhanced(settings)    ((settings->flags & FLAG_ENHANCEDREPORT) != 0)
-#define isSSL(settings)    	((settings->flags & (FLAG_SSL12 | FLAG_SSL13)) != 0)
+#define isSSL(settings)    	    ((settings->flags & (FLAG_SSL12 | FLAG_SSL13)) != 0)
 #define isSSL12(settings)    	((settings->flags & FLAG_SSL12) != 0)
 #define isSSL13(settings)    	((settings->flags & FLAG_SSL13) != 0)
 #define isKTLS(settings)    	((settings->flags & FLAG_KTLS) != 0)
+#define isServerName(settings)  ((settings->flags & FLAG_SERVERNAME) != 0)
 
 #define setBuflenSet(settings)     settings->flags |= FLAG_BUFLENSET
 #define setCompat(settings)        settings->flags |= FLAG_COMPAT
@@ -296,6 +299,7 @@ typedef struct thread_Settings {
 #define setSSL12(settings)         settings->flags |= FLAG_SSL12
 #define setSSL13(settings)         settings->flags |= FLAG_SSL13
 #define setKTLS(settings)          settings->flags |= FLAG_KTLS
+#define setServerName(settings)    settings->flags |= FLAG_SERVERNAME
 
 #define unsetBuflenSet(settings)   settings->flags &= ~FLAG_BUFLENSET
 #define unsetCompat(settings)      settings->flags &= ~FLAG_COMPAT
