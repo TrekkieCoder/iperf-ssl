@@ -125,6 +125,7 @@ const struct option long_options[] =
 {"linux-congestion", required_argument, NULL, 'Z'},
 {"tls",        optional_argument, NULL, 'E'},
 {"ktls",             no_argument, NULL, 'K'},
+{"server_name", required_argument, NULL, 'A'},
 {0, 0, 0, 0}
 };
 
@@ -174,7 +175,7 @@ const struct option env_options[] =
 
 #define SHORT_OPTIONS()
 
-const char short_options[] = "1b:c:def:hi:l:mn:o:p:rst:uvw:x:y:zB:CDF:IL:M:NP:RS:T:UVWZ:";
+const char short_options[] = "1b:c:def:hi:l:mn:o:p:rst:uvw:x:y:zA:B:CDF:IL:M:NP:RS:T:UVWZ:";
 
 /* -------------------------------------------------------------------
  * defaults
@@ -658,6 +659,23 @@ void Settings_Interpret( char option, const char *optarg, thread_Settings *mExtS
                 fprintf( stderr, "Invalid -E option argument (TLS not enabled)\n");
             }
             break;
+
+		case 'A': // Use Server Name
+            if ( mExtSettings->mThreadMode != kMode_Client ) {
+                fprintf( stderr, warn_invalid_server_option, option );
+                break;
+            }
+
+            if (!isSSL( mExtSettings )) {
+                fprintf( stderr, "Cannot specify the -A option before the -E or -K option (enabling SSL or KTLS)\n");
+			} else if (optarg == NULL) {
+                fprintf( stderr, "Error, must specify a valid Server Name\n");
+			} else {
+				setServerName( mExtSettings );
+            	mExtSettings->mServerName = new char[strlen(optarg)+1];
+            	strcpy( mExtSettings->mServerName, optarg);
+			}
+			break;
 
         case 'F' : // Get the input for the data stream from a file
             if ( mExtSettings->mThreadMode != kMode_Client ) {
