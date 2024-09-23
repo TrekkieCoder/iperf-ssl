@@ -27,7 +27,7 @@ Examples for testing iperf with ssl/tls :
 
 ### In client mode :
 ```
-./src/iperf --tls=v1.2 --ktls -c <ip> -t 60 -i 1
+./src/iperf --tls=v1.2 -c <ip> -t 60 -i 1
 ```
 
 ### Notes about certificates
